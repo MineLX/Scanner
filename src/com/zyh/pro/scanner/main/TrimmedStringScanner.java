@@ -2,16 +2,22 @@ package com.zyh.pro.scanner.main;
 
 import java.util.function.IntPredicate;
 
-public class TrimmedScanner implements IScanner {
+public class TrimmedStringScanner implements IStringScanner {
 
-	private final IScanner decorated;
+	private final IStringScanner decorated;
 
-	public TrimmedScanner(IScanner decorated) {
+	public TrimmedStringScanner(IStringScanner decorated) {
 		this.decorated = decorated;
 	}
 
 	@Override
+	public void setIndex(int index) {
+		decorated.setIndex(index);
+	}
+
+	@Override
 	public char nextChar() {
+		decorated.trim();
 		return decorated.nextChar();
 	}
 
@@ -81,6 +87,11 @@ public class TrimmedScanner implements IScanner {
 	}
 
 	@Override
+	public void pullBack(String item) {
+		decorated.pullBack(item);
+	}
+
+	@Override
 	public int hasCount() {
 		return decorated.hasCount();
 	}
@@ -98,6 +109,11 @@ public class TrimmedScanner implements IScanner {
 	@Override
 	public String peek(int count) {
 		return decorated.peek(count);
+	}
+
+	@Override
+	public IStringScanner copy() {
+		return new TrimmedStringScanner(decorated.copy());
 	}
 
 	@Override

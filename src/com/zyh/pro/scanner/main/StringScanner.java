@@ -1,29 +1,38 @@
 package com.zyh.pro.scanner.main;
 
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.IntPredicate;
 
 import static java.util.Arrays.copyOfRange;
 
-public class Scanner implements IScanner {
+public class StringScanner implements IStringScanner {
 
 	private final char[] source;
 
 	private int index;
 
-	public Scanner(String source) {
+	public StringScanner(String source) {
 		this.source = source.toCharArray();
 	}
 
 	@Override
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
+	@Override
 	public char nextChar() {
+		throwIfEnd();
 		return source[index++];
 	}
 
 	@Override
 	public void pullBack(int count) {
 		index -= count;
+	}
+
+	@Override
+	public void pullBack(String item) {
+		pullBack(item.length());
 	}
 
 	@Override
@@ -99,6 +108,13 @@ public class Scanner implements IScanner {
 	}
 
 	@Override
+	public StringScanner copy() {
+		StringScanner result = new StringScanner(new String(source));
+		result.index = index;
+		return result;
+	}
+
+	@Override
 	public boolean existsIf(IntPredicate predicate) {
 		if (isEmpty())
 			return false;
@@ -129,5 +145,10 @@ public class Scanner implements IScanner {
 
 	private String getRemainder() {
 		return new String(source).substring(index, source.length);
+	}
+
+	private void throwIfEnd() {
+		if (!hasNext())
+			throw new IllegalStateException("scanner source is end.");
 	}
 }

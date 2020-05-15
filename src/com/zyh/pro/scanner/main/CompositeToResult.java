@@ -1,7 +1,5 @@
 package com.zyh.pro.scanner.main;
 
-import com.sun.istack.internal.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

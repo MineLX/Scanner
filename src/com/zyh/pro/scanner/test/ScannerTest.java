@@ -1,14 +1,25 @@
 package com.zyh.pro.scanner.test;
 
-import com.zyh.pro.scanner.main.IScanner;
-import com.zyh.pro.scanner.main.Scanner;
-import com.zyh.pro.scanner.main.TrimmedScanner;
+import com.zyh.pro.scanner.main.IStringScanner;
+import com.zyh.pro.scanner.main.StringScanner;
+import com.zyh.pro.scanner.main.TrimmedStringScanner;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class ScannerTest {
+	@Test
+	public void copy() {
+		IStringScanner scanner = new TrimmedStringScanner(new StringScanner("hello,world"));
+		scanner.nextAlpha();
+		IStringScanner copy = scanner.copy();
+		assertThat(scanner.getIndex(), is(copy.getIndex()));
+		copy.nextChar();
+		assertThat(scanner.getIndex(), not(copy.getIndex()));
+	}
+
 	@Test
 	public void containsBetween() {
 		assertThat(getScanner("(hello)").between('(', ')'), is("hello"));
@@ -21,59 +32,59 @@ public class ScannerTest {
 
 	@Test
 	public void edge_existsIf() {
-		IScanner scanner = getScanner("");
+		IStringScanner scanner = getScanner("");
 		assertThat(scanner.existsIf(item -> true), is(false));
 	}
 
 	@Test
 	public void existsIf() {
-		IScanner scanner = getScanner("print(...)");
+		IStringScanner scanner = getScanner("print(...)");
 		assertThat(scanner.existsIf(Character::isAlphabetic), is(true));
 	}
 
 	@Test
 	public void collect_trimmedScanner() {
-		TrimmedScanner scanner = new TrimmedScanner(new Scanner(",,  2"));
+		TrimmedStringScanner scanner = new TrimmedStringScanner(new StringScanner(",,  2"));
 		assertThat(scanner.collect(item -> item == ','), is(",,"));
 		assertThat(scanner.toString(), is("  2"));
 	}
 
 	@Test
 	public void pass_nonsenses() {
-		IScanner scanner = getScanner(" \n3");
+		IStringScanner scanner = getScanner(" \n3");
 		scanner.collect(item -> item == ' ');
 		assertThat(scanner.nextChar(), is('\n'));
 	}
 
 	@Test
 	public void nextFloat_test() {
-		IScanner scanner = getScanner("1.1, ");
+		IStringScanner scanner = getScanner("1.1, ");
 		assertThat(scanner.nextFloat(), is("1.1"));
 	}
 
 	@Test
 	public void til_test() {
-		IScanner scanner = getScanner("hello|world");
+		IStringScanner scanner = getScanner("hello|world");
 		assertThat(scanner.til('|'), is("hello"));
 	}
 
 	@Test
 	public void is_empty_test() {
-		IScanner source = getScanner("source");
+		IStringScanner source = getScanner("source");
 		source.nextPage();
 		assertThat(source.isEmpty(), is(true));
 	}
 
 	@Test
 	public void pass_all_spaces_tabs_n_breaks() {
-		IScanner scanner = getScanner("  hello");
+		IStringScanner scanner = getScanner("  hello");
 		scanner.trim();
 		assertThat(scanner.nextChar(), is('h'));
 	}
 
 	@Test
 	public void nextChars_test() {
-		IScanner source = getScanner("source");
+		IStringScanner source = getScanner("source");
 		String chars = source.nextChars(4);
 
 		assertThat(chars, is("sour"));
@@ -82,13 +93,13 @@ public class ScannerTest {
 
 	@Test
 	public void exists_no_effects() {
-		IScanner source = getScanner("source");
+		IStringScanner source = getScanner("source");
 		assertThat(source.exists("sour"), is(true));
 	}
 
 	@Test
 	public void exists_side_test() {
-		IScanner scanner = getScanner("hello");
+		IStringScanner scanner = getScanner("hello");
 		scanner.nextPage();
 		assertThat(scanner.pass("myTub"), is(false));
 
@@ -98,16 +109,16 @@ public class ScannerTest {
 
 	@Test
 	public void has_test() {
-		IScanner scanner = getScanner("hell");
+		IStringScanner scanner = getScanner("hell");
 		scanner.nextPage();
 		assertThat(scanner.hasCount(), is(0));
 	}
 
 	@Test
 	public void consume_an_char_test() {
-		IScanner scanner = getScanner("</hello");
-		IScanner scanner1 = getScanner("<hello");
-		IScanner scanner2 = getScanner("hello");
+		IStringScanner scanner = getScanner("</hello");
+		IStringScanner scanner1 = getScanner("<hello");
+		IStringScanner scanner2 = getScanner("hello");
 		assertThat(scanner.pass("</"), is(true));
 		assertThat(scanner1.pass("</"), is(false));
 		assertThat(scanner2.pass("</"), is(false));
@@ -117,27 +128,27 @@ public class ScannerTest {
 
 	@Test
 	public void scan_side_effect_test() {
-		IScanner scanner = getScanner("source>hello");
+		IStringScanner scanner = getScanner("source>hello");
 		scanner.nextAlpha();
 		assertThat(scanner.nextChar(), is('>'));
 	}
 
 	@Test
 	public void scan_page_test() {
-		IScanner scanner = getScanner("s1our2c>e");
+		IStringScanner scanner = getScanner("s1our2c>e");
 		assertThat(scanner.nextPage(), is("s1our2c"));
 	}
 
 	@Test
 	public void scan_alpha_test() {
-		IScanner scanner = getScanner("source");
+		IStringScanner scanner = getScanner("source");
 		assertThat(scanner.nextAlpha(),
 				is("source"));
 	}
 
 	@Test
 	public void hasNext_test() {
-		IScanner scanner = getScanner("ice");
+		IStringScanner scanner = getScanner("ice");
 		scanner.nextChar();
 		assertThat(scanner.hasNext(), is(true));
 		scanner.nextChar();
@@ -147,7 +158,7 @@ public class ScannerTest {
 
 	@Test
 	public void pull_back_test() {
-		IScanner scanner = getScanner("source");
+		IStringScanner scanner = getScanner("source");
 		char next = scanner.nextChar();
 		scanner.pullBack(1);
 		assertThat(scanner.nextChar(), is(next));
@@ -155,13 +166,13 @@ public class ScannerTest {
 
 	@Test
 	public void get_char_test() {
-		IScanner scanner = getScanner("source");
+		IStringScanner scanner = getScanner("source");
 		assertThat(scanner.nextChar(), is('s'));
 		assertThat(scanner.nextChar(), is('o'));
 		assertThat(scanner.nextChar(), is('u'));
 	}
 
-	private IScanner getScanner(String source) {
-		return new Scanner(source);
+	private IStringScanner getScanner(String source) {
+		return new StringScanner(source);
 	}
 }
