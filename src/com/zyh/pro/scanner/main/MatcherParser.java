@@ -3,7 +3,7 @@ package com.zyh.pro.scanner.main;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.zyh.pro.scanner.main.ReturnMatcher.functional;
+import static com.zyh.pro.scanner.main.ReturnMatcher.of;
 
 public class MatcherParser {
 
@@ -13,7 +13,7 @@ public class MatcherParser {
 
 	public MatcherParser() {
 		formatTokenMatcher = new CollectTree.Root<>((one, another) -> one + another);
-		formatTokenMatcher.addChild(functional(scanner -> scanner.exists("[a-z]*"), scanner -> scanner.nextChars("[a-z]*".length())));
+		formatTokenMatcher.addChild(of(scanner -> scanner.exists("[a-z]*"), scanner -> scanner.nextChars("[a-z]*".length())));
 
 		matchersMatcher = new CompositeToResult<>();
 		matchersMatcher.add(new ReturnMatcher<ReturnMatcher<String, IStringScanner>, String>() {
@@ -24,7 +24,7 @@ public class MatcherParser {
 
 			@Override
 			public ReturnMatcher<String, IStringScanner> onMatched(String s) {
-				return functional(scanner -> scanner.existsIf(Character::isAlphabetic), IStringScanner::nextAlpha);
+				return of(scanner -> scanner.existsIf(Character::isAlphabetic), IStringScanner::nextAlpha);
 			}
 		});
 	}

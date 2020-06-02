@@ -26,8 +26,4 @@ public class CompositeToResult<RETURN, CLUE> implements ToResult<RETURN, CLUE> {
 		children.add(Objects.requireNonNull(child));
 		return this;
 	}
-
-	public CompositeToResult<RETURN, CLUE> add(ReturnMatcher<RETURN, CLUE> child) {
-		return add(new MatcherToResult<>(child));
-	}
 }

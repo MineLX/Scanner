@@ -52,6 +52,7 @@ public interface IStringScanner extends IScanner<String> {
 
 	boolean existsIf(IntPredicate predicate);
 
+	// FIXME 2020/6/2  wait for me!!! weird ... remove it if possible
 	String between(char left, char right);
 
 	default <R> Sequence<R> sequence(ToResult<R, ? super IStringScanner> matcher) {

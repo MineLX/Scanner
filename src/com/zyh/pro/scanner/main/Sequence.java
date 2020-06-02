@@ -1,11 +1,9 @@
 package com.zyh.pro.scanner.main;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class Sequence<ELEMENT> {
 
@@ -15,10 +13,10 @@ public class Sequence<ELEMENT> {
 		this.indexedIterator = indexedIterator;
 	}
 
-	public void consumeAll(Collector<ELEMENT> consumer) {
+	public void consumeAll(IndexedConsumer<ELEMENT> consumer) {
 		while (indexedIterator.hasNext()) {
 			int index = indexedIterator.getIndex();
-			consumer.onCollected(indexedIterator.next(), index);
+			consumer.onConsume(indexedIterator.next(), index);
 		}
 		consumer.onEnd();
 	}
@@ -26,22 +24,6 @@ public class Sequence<ELEMENT> {
 	public List<ELEMENT> toList() {
 		List<ELEMENT> result = new LinkedList<>();
 		consumeAll((element, startAt) -> result.add(element));
-		return result;
-	}
-
-	// FIXME 2020/5/2  wait for me!!!   end Operation | another responsibility
-	public List<ELEMENT> til(ELEMENT endToken) {
-		return tilIf(next -> Objects.equals(next, endToken));
-	}
-
-	public List<ELEMENT> tilIf(Predicate<ELEMENT> endTokenPredicate) {
-		List<ELEMENT> result = new ArrayList<>();
-		while (indexedIterator.hasNext()) {
-			ELEMENT next = indexedIterator.next();
-			if (endTokenPredicate.test(next))
-				break;
-			result.add(next);
-		}
 		return result;
 	}
 
@@ -61,12 +43,18 @@ public class Sequence<ELEMENT> {
 		return new Sequence<>(indexedIterator.map(mapper));
 	}
 
+	public <R> R collect(Collector<ELEMENT, R> collector) {
+		consumeAll(collector);
+		return collector.toResult();
+	}
+
+	@SafeVarargs
 	public static <T> Sequence<T> of(T... values) {
 		return new Sequence<>(new ArrayIndexedIterator<>(values));
 	}
 
-	public interface Collector<ELEMENT> {
-		void onCollected(ELEMENT element, int startAt);
+	public interface IndexedConsumer<ELEMENT> {
+		void onConsume(ELEMENT element, int startAt);
 
 		default void onEnd() {
 		}

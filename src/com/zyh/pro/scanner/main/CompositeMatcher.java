@@ -3,7 +3,7 @@ package com.zyh.pro.scanner.main;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.zyh.pro.scanner.main.ReturnMatcher.accepter;
+import static com.zyh.pro.scanner.main.ReturnMatcher.returns;
 
 public class CompositeMatcher<RETURN, CLUE> implements ReturnMatcher<RETURN, CLUE> {
 
@@ -22,7 +22,7 @@ public class CompositeMatcher<RETURN, CLUE> implements ReturnMatcher<RETURN, CLU
 	public RETURN onMatched(CLUE clue) {
 		return children.stream()
 				.filter(child -> child.isMatch(clue)).findFirst()
-				.orElse(accepter(null)).onMatched(clue);
+				.orElse(returns(null)).onMatched(clue);
 	}
 
 	public CompositeMatcher<RETURN, CLUE> add(ReturnMatcher<RETURN, CLUE> child) {

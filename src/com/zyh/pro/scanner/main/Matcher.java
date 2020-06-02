@@ -3,8 +3,7 @@ package com.zyh.pro.scanner.main;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public interface Matcher<CLUE> {
-	boolean isMatch(CLUE clue);
+public interface Matcher<CLUE> extends Match<CLUE> {
 
 	void onMatched(CLUE clue);
 
