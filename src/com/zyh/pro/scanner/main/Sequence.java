@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -12,14 +11,14 @@ public class Sequence<ELEMENT> {
 
 	private final IndexedIterator<ELEMENT> indexedIterator;
 
-	public Sequence(IndexedIterator<ELEMENT> indexedIterator) {
+	Sequence(IndexedIterator<ELEMENT> indexedIterator) {
 		this.indexedIterator = indexedIterator;
 	}
 
-	public void consumeAll(IndexedConsumer<ELEMENT> consumer) {
+	public void consumeAll(Collector<ELEMENT> consumer) {
 		while (indexedIterator.hasNext()) {
 			int index = indexedIterator.getIndex();
-			consumer.onConsume(indexedIterator.next(), index);
+			consumer.onCollected(indexedIterator.next(), index);
 		}
 		consumer.onEnd();
 	}
@@ -27,13 +26,6 @@ public class Sequence<ELEMENT> {
 	public List<ELEMENT> toList() {
 		List<ELEMENT> result = new LinkedList<>();
 		consumeAll((element, startAt) -> result.add(element));
-		return result;
-	}
-
-	// FIXME 2020/4/30  wait for me!!!  remove it if must
-	public List<ELEMENT> map(Function<List<ELEMENT>, ELEMENT> converter, Predicate<ELEMENT> terminatorPredicate) {
-		List<ELEMENT> result = new ArrayList<>();
-		consumeAll(new Combiner<>(terminatorPredicate, combination -> result.add(converter.apply(combination))));
 		return result;
 	}
 
@@ -53,22 +45,6 @@ public class Sequence<ELEMENT> {
 		return result;
 	}
 
-	public Sequence<ELEMENT> merge(ELEMENT endWith, BinaryOperator<ELEMENT> operator) {
-		return new Sequence<>(new DecoratedIndexedIterator<ELEMENT>(indexedIterator) {
-			@Override
-			public ELEMENT next() {
-				ELEMENT result = indexedIterator.next();
-				while (indexedIterator.hasNext()) {
-					ELEMENT addend = indexedIterator.next();
-					result = operator.apply(result, addend);
-					if (Objects.equals(addend, endWith))
-						break;
-				}
-				return result;
-			}
-		});
-	}
-
 	public Sequence<ELEMENT> split(ELEMENT splitBy) {
 		return new Sequence<>(new DecoratedIndexedIterator<ELEMENT>(indexedIterator) {
 			@Override
@@ -76,7 +52,7 @@ public class Sequence<ELEMENT> {
 				ELEMENT next = indexedIterator.next();
 				if (!Objects.equals(next, splitBy))
 					return next;
-				return next(); // find an element which is not equals to $splitBy
+				return next(); // find an element which is not equals to splitBy
 			}
 		});
 	}
@@ -85,8 +61,12 @@ public class Sequence<ELEMENT> {
 		return new Sequence<>(indexedIterator.map(mapper));
 	}
 
-	public interface IndexedConsumer<ELEMENT> {
-		void onConsume(ELEMENT element, int startAt);
+	public static <T> Sequence<T> of(T... values) {
+		return new Sequence<>(new ArrayIndexedIterator<>(values));
+	}
+
+	public interface Collector<ELEMENT> {
+		void onCollected(ELEMENT element, int startAt);
 
 		default void onEnd() {
 		}
